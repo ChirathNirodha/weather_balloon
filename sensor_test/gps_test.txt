@@ -1,0 +1,74 @@
+Executing task: platformio device monitor 
+
+--- Terminal on /dev/cu.usbserial-0001 | 115200 8-N-1
+--- Available filters and text transformations: colorize, debug, default, direct, esp32_exception_decoder, hexlify, log2file, nocontrol, printable, send_on_enter, time
+--- More details at https://bit.ly/pio-monitor-filters
+--- Quit: Ctrl+C | Menu: Ctrl+T | Help: Ctrl+T followed by Ctrl+H
+v:0x00
+modek��div:2
+load:0x3fff0030,len:1184
+load:0x40078000,len:13232
+load:0x40080400,len:3028
+entry 0x400805e4
+GPS Ready. Waiting for satellite data...
+Latitude: 6.796473 | Longitude: 79.901132
+Latitude: 6.796473 | Longitude: 79.901132
+Latitude: 6.796473 | Longitude: 79.901132
+Latitude: 6.796473 | Longitude: 79.901132
+Latitude: 6.796473 | Longitude: 79.901132
+Latitude: 6.796473 | Longitude: 79.901132
+Latitude: 6.796473 | Longitude: 79.901132
+Latitude: 6.796473 | Longitude: 79.901132
+Latitude: 6.796475 | Longitude: 79.901128
+Latitude: 6.796475 | Longitude: 79.901128
+Latitude: 6.796475 | Longitude: 79.901128
+Latitude: 6.796475 | Longitude: 79.901128
+Latitude: 6.796475 | Longitude: 79.901128
+Latitude: 6.796475 | Longitude: 79.901128
+Latitude: 6.796475 | Longitude: 79.901128
+Latitude: 6.796475 | Longitude: 79.901128
+Latitude: 6.796479 | Longitude: 79.901123
+Latitude: 6.796479 | Longitude: 79.901123
+Latitude: 6.796479 | Longitude: 79.901123
+Latitude: 6.796479 | Longitude: 79.901123
+Latitude: 6.796479 | Longitude: 79.901123
+Latitude: 6.796479 | Longitude: 79.901123
+Latitude: 6.796479 | Longitude: 79.901123
+Latitude: 6.796479 | Longitude: 79.901123
+Latitude: 6.796483 | Longitude: 79.901118
+Latitude: 6.796483 | Longitude: 79.901118
+Latitude: 6.796483 | Longitude: 79.901118
+Latitude: 6.796483 | Longitude: 79.901118
+Latitude: 6.796483 | Longitude: 79.901118
+Latitude: 6.796483 | Longitude: 79.901118
+Latitude: 6.796483 | Longitude: 79.901118
+Latitude: 6.796483 | Longitude: 79.901118
+Latitude: 6.796486 | Longitude: 79.901117
+Latitude: 6.796486 | Longitude: 79.901117
+Latitude: 6.796486 | Longitude: 79.901117
+Latitude: 6.796486 | Longitude: 79.901117
+Latitude: 6.796486 | Longitude: 79.901117
+Latitude: 6.796486 | Longitude: 79.901117
+Latitude: 6.796486 | Longitude: 79.901117
+Latitude: 6.796486 | Longitude: 79.901117
+Latitude: 6.796489 | Longitude: 79.901113
+Latitude: 6.796489 | Longitude: 79.901113
+Latitude: 6.796489 | Longitude: 79.901113
+Latitude: 6.796489 | Longitude: 79.901113
+Latitude: 6.796489 | Longitude: 79.901113
+Latitude: 6.796489 | Longitude: 79.901113
+Latitude: 6.796489 | Longitude: 79.901113
+Latitude: 6.796489 | Longitude: 79.901113
+Latitude: 6.796496 | Longitude: 79.901101
+Latitude: 6.796496 | Longitude: 79.901101
+Latitude: 6.796496 | Longitude: 79.901101
+Latitude: 6.796496 | Longitude: 79.901101
+Latitude: 6.796496 | Longitude: 79.901101
+Latitude: 6.796496 | Longitude: 79.901101
+Latitude: 6.796496 | Longitude: 79.901101
+Latitude: 6.796496 | Longitude: 79.901101
+Latitude: 6.796501 | Longitude: 79.901093
+Latitude: 6.796501 | Longitude: 79.901093
+Latitude: 6.796501 | Longitude: 79.901093
+Latitude: 6.796501 | Longitude: 79.901093
+Latitude: 6.796501 | Longitude: 79.901093

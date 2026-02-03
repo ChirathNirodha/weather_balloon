@@ -1,0 +1,132 @@
+Executing task: platformio device monitor 
+
+--- Terminal on /dev/cu.usbserial-0001 | 115200 8-N-1
+--- Available filters and text transformations: colorize, debug, default, direct, esp32_exception_decoder, hexlify, log2file, nocontrol, printable, send_on_enter, time
+--- More details at https://bit.ly/pio-monitor-filters
+--- Quit: Ctrl+C | Menu: Ctrl+T | Help: Ctrl+T followed by Ctrl+H
+v:0x00
+mode�␂␚�����div:2
+load:0x3fff0030,len:1184
+load:0x40078000,len:13232
+load:0x40080400,len:3028
+entry 0x400805e4
+Adafruit MAX31865 PT100 Sensor Test!
+RTD value: 8472
+Ratio = 0.25854492
+Resistance = 111.17431641
+Temperature = 28.71
+
+RTD value: 8474
+Ratio = 0.25860596
+Resistance = 111.20056152
+Temperature = 28.75
+
+RTD value: 8475
+Ratio = 0.25863647
+Resistance = 111.21368408
+Temperature = 28.78
+
+RTD value: 8475
+Ratio = 0.25863647
+Resistance = 111.21368408
+Temperature = 28.81
+
+RTD value: 8475
+Ratio = 0.25863647
+Resistance = 111.21368408
+Temperature = 28.81
+
+RTD value: 8475
+Ratio = 0.25863647
+Resistance = 111.21368408
+Temperature = 28.81
+
+RTD value: 8474
+Ratio = 0.25860596
+Resistance = 111.20056152
+Temperature = 28.78
+
+RTD value: 8474
+Ratio = 0.25860596
+Resistance = 111.20056152
+Temperature = 28.78
+
+RTD value: 8456
+Ratio = 0.25805664
+Resistance = 110.96435547
+Temperature = 28.17
+
+RTD value: 8448
+Ratio = 0.25781250
+Resistance = 110.85937500
+Temperature = 27.83
+
+RTD value: 8447
+Ratio = 0.25778198
+Resistance = 110.84625244
+Temperature = 27.80
+
+RTD value: 8447
+Ratio = 0.25778198
+Resistance = 110.84625244
+Temperature = 27.83
+
+RTD value: 8435
+Ratio = 0.25741577
+Resistance = 110.68878174
+Temperature = 27.43
+
+RTD value: 8438
+Ratio = 0.25750732
+Resistance = 110.72814941
+Temperature = 27.60
+
+RTD value: 8446
+Ratio = 0.25775146
+Resistance = 110.83312988
+Temperature = 27.87
+
+RTD value: 8453
+Ratio = 0.25796509
+Resistance = 110.92498779
+Temperature = 28.07
+
+RTD value: 8458
+Ratio = 0.25811768
+Resistance = 110.99060059
+Temperature = 28.24
+
+RTD value: 8462
+Ratio = 0.25823975
+Resistance = 111.04309082
+Temperature = 28.37
+
+RTD value: 8466
+Ratio = 0.25836182
+Resistance = 111.09558105
+Temperature = 28.51
+
+RTD value: 8469
+Ratio = 0.25845337
+Resistance = 111.13494873
+Temperature = 28.61
+
+RTD value: 8472
+Ratio = 0.25854492
+Resistance = 111.17431641
+Temperature = 28.71
+
+RTD value: 8473
+Ratio = 0.25857544
+Resistance = 111.18743896
+Temperature = 28.78
+
+RTD value: 8475
+Ratio = 0.25863647
+Resistance = 111.21368408
+Temperature = 28.81
+
+RTD value: 8475
+Ratio = 0.25863647
+Resistance = 111.21368408
+Temperature = 28.81

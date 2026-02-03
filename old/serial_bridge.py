@@ -5,9 +5,9 @@ import json
 import time
 
 # --- CONFIGURATION ---
-SERIAL_PORT = '/dev/cu.usbserial-0001' # Add the correct COM port # Updated to match your successful connection
+SERIAL_PORT = '/dev/cu.usbmodem5AE70285671' # Add the correct COM port # Updated to match your successful connection
 BAUD_RATE = 9600
-SERVER_PORT = 8080
+SERVER_PORT = 8101
 CLIENTS = set()
 
 # --- SERIAL COMMUNICATION ---
