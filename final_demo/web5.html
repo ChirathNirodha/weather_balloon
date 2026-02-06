@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Balloon Ground Station</title>
+
+    <style>
+        /* --- RESET & BASE STYLES --- */
+        *, *::before, *::after { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0; padding: 0;
+            display: flex; flex-direction: column;
+            min-height: 100vh;
+            background-color: #1a1a2e; color: #e0e0e0;
+        }
+
+        /* --- UTILITY CLASSES --- */
+        .flex { display: flex; }
+        .flex-col { flex-direction: column; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .justify-center { justify-content: center; }
+        .flex-grow { flex-grow: 1; }
+        .hidden { display: none !important; }
+        .w-full { width: 100%; }
+        .h-full { height: 100%; }
+        
+        .p-2 { padding: 0.5rem; }
+        .p-3 { padding: 0.75rem; }
+        .p-4 { padding: 1rem; }
+        .mb-1 { margin-bottom: 0.25rem; }
+        .mb-2 { margin-bottom: 0.5rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mr-2 { margin-right: 0.5rem; }
+        .mt-2 { margin-top: 0.5rem; }
+        .mt-4 { margin-top: 1rem; }
+
+        .text-xs { font-size: 0.75rem; }
+        .text-sm { font-size: 0.875rem; }
+        .text-lg { font-size: 1.125rem; }
+        .text-xl { font-size: 1.25rem; }
+        .text-2xl { font-size: 1.5rem; }
+        .text-3xl { font-size: 1.875rem; }
+        
+        .font-bold { font-weight: 700; }
+        .font-mono { font-family: ui-monospace, SFMono-Regular, monospace; }
+        
+        /* Colors */
+        .bg-gray-800 { background-color: #1f2937; }
+        .bg-gray-900 { background-color: #111827; }
+        .text-gray-400 { color: #9ca3af; }
+        .text-blue-200 { color: #bfdbfe; }
+        .text-teal-200 { color: #99f6e4; }
+        .text-yellow-200 { color: #fef08a; }
+        .text-red-200 { color: #fecaca; }
+        .text-indigo-400 { color: #818cf8; }
+        .text-green-400 { color: #4ade80; }
+        .text-cyan-400 { color: #22d3ee; }
+        
+        /* Layout Grid */
+        .grid { display: grid; }
+        .grid-cols-2 { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+        .col-span-2 { grid-column: span 2; }
+
+        /* Custom Components */
+        .data-card {
+            background-color: #2b2b45;
+            border: 1px solid #3d3d5c;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        /* --- SENSOR TABLE STYLES --- */
+        .sensor-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            text-align: right;
+        }
+        .sensor-table th {
+            text-align: right;
+            color: #9ca3af;
+            font-weight: normal;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #3d3d5c;
+        }
+        .sensor-table td {
+            padding: 4px 2px;
+            font-family: ui-monospace, SFMono-Regular, monospace;
+        }
+        .sensor-row-label {
+            text-align: left !important;
+            font-weight: bold;
+            color: #818cf8; /* Indigo */
+        }
+
+        /* --- BUTTONS --- */
+        .btn-icon {
+            background: transparent;
+            border: 1px solid #3d3d5c;
+            color: #9ca3af;
+            border-radius: 4px;
+            cursor: pointer;
+            padding: 2px 6px;
+            transition: all 0.2s;
+        }
+        .btn-icon:hover {
+            background: #374151;
+            color: white;
+            border-color: #6b7280;
+        }
+
+        /* --- LAYOUT STRUCTURE --- */
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        
+        #map-container {
+            position: relative;
+            flex-grow: 1;
+            background-color: #333;
+            min-height: 400px;
+        }
+
+        #telemetry-panel {
+            width: 100%;
+            background-color: #1f2937;
+            padding: 1rem;
+            overflow-y: auto;
+            z-index: 10;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.5);
+        }
+
+        @media (min-width: 1024px) {
+            .main-container { flex-direction: row; }
+            #telemetry-panel { 
+                width: 420px; 
+                flex-shrink: 0;
+                height: 100vh;
+            }
+            #map-container { height: 100vh; }
+        }
+
+        /* --- GAUGE STYLES --- */
+        .gauge-container {
+            position: relative;
+            width: 100px;
+            height: 60px;
+            margin: 0 auto;
+        }
+        .gauge-bg {
+            fill: none;
+            stroke: #3f3f46;
+            stroke-width: 8;
+            stroke-linecap: round;
+        }
+        .gauge-value-arc {
+            fill: none;
+            stroke: #ef4444; 
+            stroke-width: 8;
+            stroke-linecap: round;
+            stroke-dasharray: 100, 200; 
+            transition: stroke-dasharray 0.5s ease, stroke 0.5s ease;
+        }
+        .gauge-needle {
+            stroke: #e0e0e0;
+            stroke-width: 2;
+            fill: #e0e0e0;
+            transition: transform 0.5s cubic-bezier(0.4, 0.0, 0.2, 1);
+            transform-origin: 50px 50px; 
+        }
+        .gauge-center-dot {
+            fill: #e0e0e0;
+        }
+        .gauge-text {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 0.75rem;
+            color: #9ca3af;
+            font-weight: bold;
+        }
+
+        /* Map Fallback */
+        .offline-message {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        /* Connection Overlay */
+        #connection-overlay {
+            position: absolute; inset: 0;
+            background: rgba(0,0,0,0.85);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            z-index: 50; transition: opacity 0.5s;
+        }
+        #connection-overlay.hidden { opacity: 0; pointer-events: none; }
+    </style>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+
+<body>
+
+<div class="main-container">
+
+    <div id="telemetry-panel">
+        <div class="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
+            <h1 class="text-xl font-bold text-indigo-400">Ground Station</h1>
+            <div id="status-dot" class="w-3 h-3 rounded-full bg-red-500" title="Disconnected"></div>
+        </div>
+
+        <div id="connection-overlay">
+            <div class="text-indigo-400 text-3xl font-bold mb-2">Connecting...</div>
+            <div class="text-gray-400 text-sm">ws://localhost:8101</div>
+        </div>
+
+        <div class="grid grid-cols-2">
+            <div class="data-card p-3 flex flex-col items-center">
+                <span class="text-xs text-gray-400 uppercase">Altitude</span>
+                <span id="data-alt" class="text-2xl font-bold text-blue-200">0 m</span>
+            </div>
+            <div class="data-card p-3 flex flex-col items-center">
+                <span class="text-xs text-gray-400 uppercase">Speed</span>
+                <span id="data-speed" class="text-2xl font-bold text-teal-200">0 km/h</span>
+            </div>
+            <div class="data-card p-3 flex flex-col items-center">
+                <span class="text-xs text-gray-400 uppercase">Temp</span>
+                <span id="data-temp" class="text-2xl font-bold text-yellow-200">0 °C</span>
+            </div>
+             <div class="data-card p-3 flex flex-col items-center">
+                <span class="text-xs text-gray-400 uppercase">Mission Time</span>
+                <span id="data-time" class="text-xl font-bold text-gray-100 font-mono">00:00:00</span>
+            </div>
+            
+            <div class="data-card p-3 col-span-2">
+                <div class="flex justify-between items-center mb-1">
+                    <span class="text-xs text-gray-400 uppercase">Balloon Location</span>
+                    <span id="data-latlon" class="text-sm font-mono font-bold text-gray-200">0.0000, 0.0000</span>
+                </div>
+                <div class="flex justify-between items-center pt-2 border-t border-gray-700">
+                    <span class="text-xs text-red-400 uppercase font-bold">Distance to Weather Balloon</span>
+                    <span id="data-dist" class="text-lg font-mono font-bold text-red-400">0 m</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <h2 class="text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">Inertial Sensors</h2>
+            <div class="data-card p-3">
+                <table class="sensor-table">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>X</th>
+                            <th>Y</th>
+                            <th>Z</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="sensor-row-label">ACC</td>
+                            <td id="acc-x" class="text-blue-200">0.00</td>
+                            <td id="acc-y" class="text-blue-200">0.00</td>
+                            <td id="acc-z" class="text-blue-200">0.00</td>
+                        </tr>
+                        <tr>
+                            <td class="sensor-row-label">GYR</td>
+                            <td id="gyr-x" class="text-teal-200">0.00</td>
+                            <td id="gyr-y" class="text-teal-200">0.00</td>
+                            <td id="gyr-z" class="text-teal-200">0.00</td>
+                        </tr>
+                        <tr>
+                            <td class="sensor-row-label">MAG</td>
+                            <td id="mag-x" class="text-red-200">0.0</td>
+                            <td id="mag-y" class="text-red-200">0.0</td>
+                            <td id="mag-z" class="text-red-200">0.0</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <h2 class="text-sm font-bold text-gray-400 mb-2 uppercase">Signal Link</h2>
+            <div class="data-card p-3 flex justify-between">
+                
+                <div class="flex flex-col items-center w-1/2 border-r border-gray-700">
+                    <span class="text-xs text-gray-400 mb-1">RSSI (dBm)</span>
+                    <div class="gauge-container">
+                        <svg viewBox="0 0 100 55" width="100" height="55">
+                            <path class="gauge-bg" d="M 10 50 A 40 40 0 0 1 90 50" />
+                            <path id="rssi-arc" class="gauge-value-arc" d="M 10 50 A 40 40 0 0 1 90 50" stroke-dasharray="0, 126" />
+                            <line id="rssi-needle" class="gauge-needle" x1="50" y1="50" x2="10" y2="50" />
+                            <circle class="gauge-center-dot" cx="50" cy="50" r="3" />
+                        </svg>
+                        <div id="data-rssi" class="gauge-text">-120</div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col items-center w-1/2">
+                    <span class="text-xs text-gray-400 mb-1">SNR (dB)</span>
+                    <div class="gauge-container">
+                        <svg viewBox="0 0 100 55" width="100" height="55">
+                            <path class="gauge-bg" d="M 10 50 A 40 40 0 0 1 90 50" />
+                            <path id="snr-arc" class="gauge-value-arc" d="M 10 50 A 40 40 0 0 1 90 50" stroke-dasharray="0, 126" />
+                            <line id="snr-needle" class="gauge-needle" x1="50" y1="50" x2="10" y2="50" />
+                            <circle class="gauge-center-dot" cx="50" cy="50" r="3" />
+                        </svg>
+                        <div id="data-snr" class="gauge-text">0.0</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <div class="flex justify-between items-center mb-2">
+                <h2 class="text-sm font-bold text-gray-400 uppercase">Camera</h2>
+                <button onclick="toggleFullscreen()" class="btn-icon" title="Toggle Fullscreen">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <div id="camera-container" class="data-card overflow-hidden relative" style="min-height: 200px; background: #000;">
+                <img id="camera-feed" src="" 
+                     class="w-full h-full object-cover" 
+                     alt="Camera Feed"
+                     onerror="this.style.display='none'; document.getElementById('cam-error').style.display='flex';"
+                     onload="this.style.display='block'; document.getElementById('cam-error').style.display='none';">
+                
+                <div id="cam-error" class="absolute inset-0 flex items-center justify-center bg-gray-900 text-gray-500 text-xs hidden">
+                    <span>Signal Lost / Offline</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <div id="debug-log" class="bg-black p-2 rounded font-mono text-xs text-green-400 h-24 overflow-y-auto">
+                <div>> System Initialized...</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="map-container">
+        <div id="map" class="w-full h-full"></div>
+        
+        <div id="offline-map-msg" class="offline-message hidden">
+            <div class="text-2xl text-red-400 mb-2">⚠ Map Offline</div>
+            <div class="text-sm text-gray-400">Coordinates are still updating in sidebar.</div>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    // --- CONFIGURATION ---
+    const WS_URL = 'ws://localhost:8101';
+    
+    // UPDATE YOUR CAMERA URL HERE:
+    const CAMERA_URL = "http://10.166.225.251:8080//stream.mjpg";
+
+    // --- GLOBAL VARIABLES ---
+    let map;
+    
+    // Tracking Objects
+    let balloonMarker, balloonPath;
+    let groundMarker, connectionLine;
+    
+    // Position Data
+    let balloonPos = null; // [lat, lon]
+    let groundPos = null;  // [lat, lon]
+    
+    // --- INITIALIZATION ---
+    document.addEventListener('DOMContentLoaded', () => {
+        // Initialize Camera
+        document.getElementById('camera-feed').src = CAMERA_URL;
+
+        initMap();
+        initGeolocation();
+        connectWebSocket();
+        
+        // Initial Gauge Set
+        updateGauge('rssi', -120, -120, -40);
+        updateGauge('snr', 0, -10, 15);
+    });
+
+    // --- FULLSCREEN FUNCTION ---
+    function toggleFullscreen() {
+        const elem = document.getElementById('camera-container');
+        
+        if (!document.fullscreenElement) {
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen();
+            } else if (elem.webkitRequestFullscreen) { /* Safari */
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) { /* IE11 */
+                elem.msRequestFullscreen();
+            }
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+    }
+
+    // --- MAP LOGIC ---
+    function initMap() {
+        if (typeof L === 'undefined') {
+            console.error("Leaflet not loaded");
+            document.getElementById('offline-map-msg').classList.remove('hidden');
+            return;
+        }
+
+        map = L.map('map').setView([7.8731, 80.7718], 10);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        // 1. Balloon Icon (Red)
+        const balloonIcon = L.divIcon({
+            html: `<svg width="30" height="30" viewBox="0 0 24 24" fill="#ef4444" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>`,
+            className: '', iconSize: [30, 30], iconAnchor: [15, 15]
+        });
+
+        balloonMarker = L.marker([0,0], {icon: balloonIcon}).addTo(map);
+        
+        // Flight Path Trail
+        balloonPath = L.polyline([], {
+            color: '#ef4444', 
+            weight: 2,
+            opacity: 0.7 
+        }).addTo(map);
+
+        // 2. Ground Station Icon (Blue)
+        const groundIcon = L.divIcon({
+            html: `<svg width="30" height="30" viewBox="0 0 24 24" fill="#3b82f6" stroke="white" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>`,
+            className: '', iconSize: [30, 30], iconAnchor: [15, 15]
+        });
+
+        groundMarker = L.marker([0,0], {icon: groundIcon, opacity: 0}).addTo(map);
+        
+        // 3. Connection Line (RED, THICKER)
+        connectionLine = L.polyline([], {
+            color: '#ef4444', 
+            weight: 4,        
+            dashArray: '10, 10' 
+        }).addTo(map);
+    }
+
+    // --- GEOLOCATION LOGIC ---
+    function initGeolocation() {
+        if ("geolocation" in navigator) {
+            log("Acquiring Ground Station Location...");
+            
+            navigator.geolocation.watchPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    groundPos = [lat, lon];
+                    
+                    if (map && groundMarker) {
+                        groundMarker.setLatLng(groundPos);
+                        groundMarker.setOpacity(1);
+                        groundMarker.bindPopup("<b>Ground Station</b><br>You are here").openPopup();
+                    }
+                    updateConnectionLine();
+                },
+                (error) => {
+                    log("Geolocation Denied/Error: " + error.message);
+                },
+                { enableHighAccuracy: true }
+            );
+        } else {
+            log("Geolocation not supported by this browser.");
+        }
+    }
+
+    // --- WEBSOCKET LOGIC ---
+    function connectWebSocket() {
+        const socket = new WebSocket(WS_URL);
+        const overlay = document.getElementById('connection-overlay');
+        const statusDot = document.getElementById('status-dot');
+
+        socket.onopen = () => {
+            log("Connected to Bridge.");
+            overlay.classList.add('hidden');
+            statusDot.className = "w-3 h-3 rounded-full bg-green-500";
+        };
+
+        socket.onmessage = async (event) => {
+            try {
+                let msgText = event.data;
+                if (event.data instanceof Blob) {
+                    msgText = await event.data.text();
+                }
+                const data = JSON.parse(msgText);
+                updateDashboard(data);
+                
+                statusDot.classList.add('animate-pulse');
+                setTimeout(() => statusDot.classList.remove('animate-pulse'), 100);
+
+            } catch (e) {
+                console.error("JSON Error", e);
+            }
+        };
+
+        socket.onclose = () => {
+            log("Disconnected. Retrying...");
+            overlay.classList.remove('hidden');
+            statusDot.className = "w-3 h-3 rounded-full bg-red-500";
+            setTimeout(connectWebSocket, 3000);
+        };
+        
+        socket.onerror = (err) => console.error("WS Error", err);
+    }
+
+    // --- DASHBOARD UPDATES ---
+    function updateDashboard(data) {
+        // 1. Vitals
+        setText('data-alt', (data.alt || 0).toFixed(1) + " m");
+        setText('data-speed', (data.speed || 0).toFixed(1) + " km/h");
+        setText('data-temp', (data.temp || 0).toFixed(1) + " °C");
+        
+        if(data.timestamp) {
+            let ts = data.timestamp;
+            const date = new Date(ts);
+            const timeStr = date.toTimeString().split(' ')[0]; 
+            setText('data-time', timeStr);
+        }
+
+        // 2. Location
+        const lat = data.lat || 0;
+        const lon = data.lon || 0;
+        setText('data-latlon', `${lat.toFixed(5)}, ${lon.toFixed(5)}`);
+
+        if (map && lat !== 0 && lon !== 0) {
+            balloonPos = [lat, lon];
+            balloonMarker.setLatLng(balloonPos);
+            balloonPath.addLatLng(balloonPos);
+            updateConnectionLine();
+        }
+
+        // 3. Sensors
+        const acc = data.accel || [0,0,0];
+        const gyr = data.gyro || [0,0,0];
+        const mag = data.mag || [0,0,0];
+
+        setText('acc-x', acc[0].toFixed(2)); setText('acc-y', acc[1].toFixed(2)); setText('acc-z', acc[2].toFixed(2));
+        setText('gyr-x', gyr[0].toFixed(2)); setText('gyr-y', gyr[1].toFixed(2)); setText('gyr-z', gyr[2].toFixed(2));
+        setText('mag-x', mag[0].toFixed(1)); setText('mag-y', mag[1].toFixed(1)); setText('mag-z', mag[2].toFixed(1));
+
+        // 4. Signals
+        const rssi = data.rssi || -120;
+        const snr = data.snr || 0;
+        
+        updateGauge('rssi', rssi, -120, -40);
+        updateGauge('snr', snr, -10, 15);
+    }
+
+    // --- GAUGE RENDER FUNCTION ---
+    function updateGauge(type, val, min, max) {
+        const clampedVal = Math.max(min, Math.min(max, val));
+        const pct = (clampedVal - min) / (max - min);
+        
+        const maxDash = 126; 
+        const dashVal = maxDash * pct;
+
+        let color = '#ef4444'; // Red
+        if (pct > 0.7) color = '#4ade80'; // Green
+        else if (pct > 0.3) color = '#facc15'; // Yellow
+
+        const arc = document.getElementById(`${type}-arc`);
+        if (arc) {
+            arc.style.strokeDasharray = `${dashVal}, 200`;
+            arc.style.stroke = color;
+        }
+
+        const needle = document.getElementById(`${type}-needle`);
+        if (needle) {
+            const rot = 180 * pct; 
+            needle.style.transform = `rotate(${rot}deg)`;
+        }
+
+        const text = document.getElementById(`data-${type}`);
+        if (text) {
+            text.textContent = val.toFixed(1);
+            text.style.color = color;
+        }
+    }
+
+    // --- HELPER FUNCTIONS ---
+    function updateConnectionLine() {
+        if (!balloonPos || !groundPos || !map) return;
+        
+        connectionLine.setLatLngs([groundPos, balloonPos]);
+
+        const p1 = L.latLng(groundPos);
+        const p2 = L.latLng(balloonPos);
+        const distMeters = p1.distanceTo(p2);
+
+        let distStr = "";
+        if (distMeters > 1000) {
+            distStr = (distMeters / 1000).toFixed(2) + " km";
+        } else {
+            distStr = Math.round(distMeters) + " m";
+        }
+        setText('data-dist', distStr);
+    }
+
+    function setText(id, val) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val;
+    }
+
+    function log(msg) {
+        const box = document.getElementById('debug-log');
+        if(!box) return;
+        const line = document.createElement('div');
+        line.textContent = `> ${msg}`;
+        box.appendChild(line);
+        box.scrollTop = box.scrollHeight;
+    }
+</script>
+
+</body>
+</html>

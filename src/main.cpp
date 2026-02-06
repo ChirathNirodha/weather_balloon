@@ -1,71 +1,102 @@
 #include <Arduino.h>
-#include <ArduinoJson.h> // Make sure to install "ArduinoJson" by Benoit Blanchon via Library Manager
+#include <ArduinoJson.h> // Ensure you are using ArduinoJson v7.x
 
 // --- CONFIGURATION ---
 const long BAUD_RATE = 9600;
 
-// Globals for simulation
-double currentLat = 40.7128;
-double currentLon = -74.0060;
-float currentAlt = 1000.0;
-uint32_t currentTime = 0;
-// We'll simulate these to test the dashboard gauges
-float currentSpeed = 15.5; 
-int currentRssi = -55;
-float currentSnr = 8.2;
+// Simulation Variables (Replace these with your real sensor logic later)
+double simLat = 6.795843;
+double simLon = 79.902059;
+float simAlt = 0.0;
+float simSpeed = 0.5; // in m/s
+float simTemp = 27.0; 
 
-// Size estimation:
-// We are sending ~6-7 fields. 256 bytes is sufficient for Uno (2KB RAM).
-// Using StaticJsonDocument is slightly better for Uno to avoid heap fragmentation,
-// but DynamicJsonDocument(256) works fine here too.
-const size_t JSON_DOC_SIZE = 256; 
+float simaX = 0.12, simaY = 0.05, simaZ = 9.81;
+float simgX = 0.01, simgY = 0.00, simgZ = -0.01;
+float simmX = 15.0, simmY = 22.5, simmZ = 40.2;
+
+float simRssi = -70.5;
+float simSnr = 7.3;
 
 void setup() {
   Serial.begin(BAUD_RATE);
   // Wait a moment for Serial to stabilize
   delay(1000);
-  // Optional: Debug message (might be missed if Python script isn't running yet)
-  // Serial.println(F("Arduino Uno Telemetry Sender Initialized."));
+}
+
+// Function to package data and send to Serial (and CSV via Python)
+void sendTelemetry(uint32_t timestamp, float temp, double lat, double lon, float alt, 
+                   float ax, float ay, float az, 
+                   float gx, float gy, float gz, 
+                   float mx, float my, float mz, float rssi, float snr, float speed) {
+                   
+  // FIX: In ArduinoJson v7, use JsonDocument instead of StaticJsonDocument<SIZE>
+  // The library now manages memory elastically (like a std::string).
+  JsonDocument doc;
+
+  // Populate the JSON object
+  doc["timestamp"] = timestamp;
+  doc["temp"] = temp;
+  doc["lat"] = lat;
+  doc["lon"] = lon;
+  doc["alt"] = alt;
+  doc["rssi"] = rssi;
+  doc["snr"] = snr;
+  doc["speed"] = speed;
+  
+  // Create nested arrays for 3-axis data
+  // "to<JsonArray>()" is the cleaner v7 way to create arrays, though createNestedArray also works
+  JsonArray accel = doc["accel"].to<JsonArray>();
+  accel.add(ax);
+  accel.add(ay);
+  accel.add(az);
+
+  JsonArray gyro = doc["gyro"].to<JsonArray>();
+  gyro.add(gx);
+  gyro.add(gy);
+  gyro.add(gz);
+
+  JsonArray mag = doc["mag"].to<JsonArray>();
+  mag.add(mx);
+  mag.add(my);
+  mag.add(mz);
+
+  // Serialize to Serial (Output to monitor)
+  serializeJson(doc, Serial);
+  Serial.println(); // Newline is crucial for the Python reader to detect the end of packet
 }
 
 void loop() {
-    // 1. Update simulated data
-    currentTime = millis();
-    currentLat += 0.0001;  // Move North slightly
-    currentLon -= 0.00005; // Move West slightly
-    currentAlt += 2.5;     // Increase altitude
+  // --- SIMULATION LOGIC (Replace with your LoRa receive code) ---
+  
+  // Update simulation values
+  simAlt += random(-1, 1) * 0.5;
+  simLat += random(0, 2) * 0.0001; // Small random walk
+  simLon += random(0, 2) * 0.0001; // Small random walk
+  simTemp = 28.0 + sin(millis() / 10000.0);
+  
+  // Simulate 3-axis data (Example dummy values)
+  simaX += 0.001; simaY += 0.002; simaZ += 0.0005;
+  simgX += 0.0001; simgY += 0.0002; simgZ += 0.0001;
+  simmX += 0.01; simmY += 0.015; simmZ += 0.02;
 
-    // Simulate signal fluctuation
-    currentRssi = -55 + random(-5, 5); 
-    currentSnr = 8.0 + (random(-10, 10) / 10.0);
+  simRssi = -70.0 + 5.0 * sin(millis() / 15000.0);
+  simSnr = 7.0 + 2.0 * cos(millis() / 20000.0);
 
-    // Reset simulation if it gets too far/high
-    if (currentAlt > 15000.0) {
-      currentAlt = 1000.0;
-      currentLat = 40.7128;
-      currentLon = -74.0060;
-    }
-    
-    // 2. Create the JSON document
-    // NOTE: If using ArduinoJson v7, you can just use JsonDocument doc;
-    // For v6, we stick to DynamicJsonDocument or StaticJsonDocument.
-    StaticJsonDocument<JSON_DOC_SIZE> doc;
+  simSpeed += random(-1, 1) * 0.1;
+  if(simSpeed < 0) simSpeed = 0;
 
-    // 3. Populate fields MATCHING the HTML expectations
-    doc["time"] = currentTime;
-    doc["lat"] = currentLat;       // HTML expects 'lat'
-    doc["lon"] = currentLon;       // HTML expects 'lon'
-    doc["alt"] = currentAlt;       // HTML expects 'alt'
-    doc["speed"] = currentSpeed;   // HTML expects 'speed'
-    doc["rssi"] = currentRssi;     // HTML expects 'rssi'
-    doc["snr"] = currentSnr;       // HTML expects 'snr'
+  // Need to randomly change the rssi and snr in a larger range to simulate real world changes
+  if (millis() % 30000 < 1000) {
+    simRssi += random(-10, 10);
+    simSnr += random(-3, 3);
+  }
 
-    // 4. Serialize to Serial
-    serializeJson(doc, Serial);
-    
-    // 5. Send a newline to indicate end of packet
-    Serial.println();
+  // CALL THE FUNCTION
+  sendTelemetry(millis(), simTemp, simLat, simLon, simAlt, 
+                simaX, simaY, simaZ, 
+                simgX, simgY, simgZ, 
+                simmX, simmY, simmZ, simRssi, simSnr, simSpeed);
 
-    // Delay to prevent flooding the serial port (Arduino Uno buffer is small)
-    delay(1000); 
+  delay(1000);
 }
